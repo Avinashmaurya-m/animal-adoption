@@ -213,7 +213,7 @@ export function topBar(user, active) {
   }).join("");
   return (
     '<header class="topbar"><div class="topbar-inner">' +
-    '<a href="feed.html" class="brand"><span class="logo">✦</span><span>Rescue<span class="brand-accent">Nest</span></span></a>' +
+    '<a href="feed.html" class="brand" aria-label="RescueNest home"><span class="logo" aria-hidden="true">✦</span><span>Rescue<span class="brand-accent">Nest</span></span></a>' +
     '<nav class="desktop-nav" aria-label="Primary navigation">' + nav + '</nav>' +
     '<div class="top-actions">' +
     '<button class="icon-btn" onclick="window.toggleTheme()" title="Toggle colour theme">◐</button>' +
