@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create post — RescueNest</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <main class="container">
+    <div class="page-head page-lead">
+      <div><span class="eyebrow">TURN COMPASSION INTO ACTION</span><h1>Share an animal’s <em>story.</em></h1><p>Give nearby helpers the details they need to respond with confidence.</p></div>
+      <button class="btn btn-ghost btn-sm" onclick="history.back()">Cancel</button>
+    </div>
+
+    <form id="post-form" class="card form-holder" style="padding:20px;border-radius:16px">
+      <!-- Image uploader -->
+      <div class="field">
+        <label>Animal photo</label>
+        <label class="uploader" id="uploader">
+          <span class="big">📷</span>
+          <span>Click to choose a photo</span>
+          <input type="file" id="image-input" accept="image/*">
+        </label>
+        <div id="preview-area" class="upload-preview hidden">
+          <img id="preview-img" alt="Preview">
+          <button type="button" onclick="clearImage()">✕</button>
+        </div>
+      </div>
+
+      <!-- Animal type -->
+      <div class="field">
+        <label>Animal</label>
+        <div class="chip-group" id="animal-chips">
+          <button type="button" class="chip active" data-val="Dog">Dog</button>
+          <button type="button" class="chip" data-val="Cat">Cat</button>
+          <button type="button" class="chip" data-val="Bird">Bird</button>
+          <button type="button" class="chip" data-val="Rabbit">Rabbit</button>
+          <button type="button" class="chip" data-val="Cow">Cow</button>
+          <button type="button" class="chip" data-val="Goat">Goat</button>
+          <button type="button" class="chip" data-val="Horse">Horse</button>
+          <button type="button" class="chip" data-val="Other">Other</button>
+        </div>
+      </div>
+
+      <!-- Post type -->
+      <div class="field">
+        <label>Post type</label>
+        <div class="chip-group" id="kind-chips">
+          <button type="button" class="chip active" data-val="adoption">Adoption</button>
+          <button type="button" class="chip" data-val="rescue">Rescue</button>
+          <button type="button" class="chip" data-val="lost">Lost</button>
+          <button type="button" class="chip" data-val="found">Found</button>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Animal name</label>
+          <input type="text" id="name" placeholder="e.g. Milo" required>
+        </div>
+        <div class="field">
+          <label>Breed</label>
+          <input type="text" id="breed" placeholder="e.g. Labrador">
+        </div>
+      </div>
+
+      <div class="field-row-3">
+        <div class="field">
+          <label>Age</label>
+          <input type="text" id="age" placeholder="e.g. 2 years">
+        </div>
+        <div class="field">
+          <label>Gender</label>
+          <select id="gender">
+            <option value="">Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Unknown">Unknown</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>City</label>
+          <input type="text" id="city" placeholder="e.g. Delhi" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Health condition</label>
+        <input type="text" id="health" placeholder="e.g. Fully healthy, needs vet care...">
+      </div>
+
+      <div class="field">
+        <label class="check-switch">
+          <input type="checkbox" id="vaccinated">
+          <span>Vaccinated</span>
+        </label>
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea id="description" placeholder="Tell people about this animal's story, temperament, and what help is needed." required></textarea>
+      </div>
+
+      <div class="field">
+        <label>Phone number</label>
+        <input type="tel" id="phone" placeholder="e.g. 9876543210" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Publish post</button>
+    </form>
+  </main>
+
+  <script src="./config.js"></script>
+  <script type="module">
+    import { onAuth, createPost, getUserProfile } from "./supabase-service.js";
+    import { topBar, toast, uploadImage } from "./js/app.js";
+
+    let currentUser = null;
+    let selectedFile = null;
+    let animalType = "Dog";
+    let kind = "adoption";
+
+    onAuth(async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      const profile = await getUserProfile(user.uid).catch(() => null);
+      currentUser = { name: profile?.name || user.displayName || user.email };
+      document.getElementById("topbar").innerHTML = topBar(currentUser, "create");
+    });
+
+    // Animal and kind chip selection
+    document.querySelectorAll("#animal-chips .chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll("#animal-chips .chip").forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        animalType = chip.getAttribute("data-val");
+      });
+    });
+    document.querySelectorAll("#kind-chips .chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll("#kind-chips .chip").forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        kind = chip.getAttribute("data-val");
+      });
+    });
+
+    // Image preview
+    const imageInput = document.getElementById("image-input");
+    imageInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        toast("Please choose an image file.", "error");
+        return;
+      }
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById("preview-img").src = ev.target.result;
+        document.getElementById("preview-area").classList.remove("hidden");
+        document.getElementById("uploader").classList.add("hidden");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    window.clearImage = () => {
+      selectedFile = null;
+      imageInput.value = "";
+      document.getElementById("preview-area").classList.add("hidden");
+      document.getElementById("uploader").classList.remove("hidden");
+    };
+
+    // Submit
+    document.getElementById("post-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("submit-btn");
+
+      const name = document.getElementById("name").value.trim();
+      const city = document.getElementById("city").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+
+      if (!name || !city || !description || !phone) {
+        return toast("Please fill in all required fields.", "error");
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Uploading & publishing...";
+
+      try {
+        // 1. Upload image to Cloudinary (if selected)
+        let imageUrl = "";
+        if (selectedFile) {
+          toast("Uploading image...", "success");
+          imageUrl = await uploadImage(selectedFile);
+        }
+
+        // 2. Save post to Firestore
+        await withTimeout(
+          createPost({
+            name,
+            animalType,
+            breed: document.getElementById("breed").value.trim(),
+            age: document.getElementById("age").value.trim(),
+            gender: document.getElementById("gender").value,
+            vaccinated: document.getElementById("vaccinated").checked,
+            health: document.getElementById("health").value.trim(),
+            description,
+            city,
+            phone,
+            kind,
+            imageUrl,
+            authorName: currentUser?.name || "Unknown"
+          }),
+          30000,
+          "The post database did not respond. Check that Firestore is enabled, then try again."
+        );
+
+        toast("Post published successfully! 🎉");
+        setTimeout(() => (window.location.href = "feed.html"), 1200);
+      } catch (err) {
+        console.error(err);
+        toast(err.message || "Failed to publish post.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Publish post";
+      }
+    });
+
+    function withTimeout(promise, milliseconds, message) {
+      let timer;
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), milliseconds);
+      });
+      return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+    }
+  </script>
+</body>
+</html>

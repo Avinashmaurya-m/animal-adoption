@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create account — RescueNest</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="auth-page">
+<div class="form-card card auth-brand">
+      <a class="brand" href="index.html" style="justify-content:center;display:flex;align-items:center;gap:9px;font-size:22px;margin-bottom:16px;"><span class="logo" style="width:40px;height:40px;font-size:22px;">🐾</span>RescueNest</a>
+      <h1>Join the pack</h1>
+      <p class="subtitle">Create your account and become part of the care network.</p>
+
+      <form id="signup-form">
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" id="name" placeholder="Your full name" required>
+        </div>
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" id="email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="At least 6 characters" minlength="6" required>
+        </div>
+        <div class="field">
+          <label>Confirm password</label>
+          <input type="password" id="confirm" placeholder="Repeat your password" minlength="6" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Create account</button>
+      </form>
+
+      <p class="auth-alt">Already have an account? <a href="login.html">Log in</a></p>
+    </div>
+  </main>
+
+  <script src="./config.js"></script>
+  <script type="module">
+    import { registerUser } from "./supabase-service.js";
+    import { toast } from "./js/app.js";
+
+    const form = document.getElementById("signup-form");
+    const btn = document.getElementById("submit-btn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const confirm = document.getElementById("confirm").value;
+
+      if (!name || !email || !password) {
+        toast("Please fill in all fields.", "error");
+        return;
+      }
+      if (password.length < 6) {
+        toast("Password must be at least 6 characters.", "error");
+        return;
+      }
+      if (password !== confirm) {
+        toast("Passwords do not match.", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Creating account...";
+
+      try {
+        const user = await registerUser({ name, email, password });
+        toast("Account created! Welcome to RescueNest 🐾");
+        window.location.replace("feed.html");
+      } catch (err) {
+        let msg = "Signup failed. Please try again.";
+        if (err.code === "auth/email-already-in-use") msg = "An account with this email already exists.";
+        else if (err.code === "auth/invalid-email") msg = "Please enter a valid email.";
+        else if (err.code === "auth/weak-password") msg = "Password is too weak.";
+        toast(msg, "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Create account";
+      }
+    });
+  </script>
+</body>
+</html>

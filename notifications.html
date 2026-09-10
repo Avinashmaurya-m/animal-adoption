@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications — RescueNest</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <main class="container">
+    <div class="page-head page-lead">
+      <div><span class="eyebrow">YOUR COMMUNITY</span><h1>Care in <em>motion.</em></h1><p>See responses and small moments of progress from your posts.</p></div>
+    </div>
+    <div id="notifications-list" class="feed">
+      <div class="spinner-wrap"><div class="spinner"></div></div>
+    </div>
+  </main>
+
+  <script src="./config.js"></script>
+  <script type="module">
+    import { onAuth, getUserProfile, onNotifications } from "./supabase-service.js";
+    import { topBar, escapeHtml, timeAgo } from "./js/app.js";
+
+    onAuth(async (user) => {
+      if (!user) return (window.location.href = "login.html");
+      const profile = await getUserProfile(user.uid).catch(() => null);
+      document.getElementById("topbar").innerHTML = topBar(
+        { name: profile?.name || user.displayName || user.email },
+        "alerts"
+      );
+
+      onNotifications(user.uid, (notifications) => {
+        const list = document.getElementById("notifications-list");
+        if (!notifications.length) {
+          list.innerHTML = '<div class="card empty-state"><span class="big">🔔</span><h3>No notifications yet</h3><p>When someone likes or comments on your post, you\'ll see it here.</p></div>';
+          return;
+        }
+        list.innerHTML = notifications
+          .map(
+            (n) =>
+              '<div class="card notif' + (n.read ? "" : " unread") + '"><span class="notif-icon">' +
+              (n.icon || "🔔") + "</span><div><div>" + escapeHtml(n.text || "") + "</div>" +
+              '<small>' + timeAgo(n.createdAt) + "</small></div></div>"
+          )
+          .join("");
+      });
+    });
+  </script>
+</body>
+</html>

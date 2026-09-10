@@ -1,0 +1,8 @@
+.firebase/
+functions/node_modules/
+media-server/node_modules/
+media-server/uploads/*
+!media-server/uploads/.gitkeep
+
+.vercel
+.env*

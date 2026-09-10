@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search — RescueNest</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <main class="container">
+    <div class="page-head page-lead">
+      <div><span class="eyebrow">FIND YOUR NEXT CONNECTION</span><h1>Explore with <em>purpose.</em></h1><p>Search the community by animal, location, or the kind of help needed.</p></div>
+    </div>
+
+    <div class="card search-box">
+      <input type="text" id="search-input" placeholder="Search by animal, breed, city, or type...">
+      <div class="search-filters">
+        <select id="filter-kind">
+          <option value="">All types</option>
+          <option value="adoption">Adoption</option>
+          <option value="rescue">Rescue</option>
+          <option value="lost">Lost</option>
+          <option value="found">Found</option>
+        </select>
+        <select id="filter-animal">
+          <option value="">All animals</option>
+          <option>Dog</option>
+          <option>Cat</option>
+          <option>Bird</option>
+          <option>Rabbit</option>
+          <option>Cow</option>
+          <option>Goat</option>
+          <option>Horse</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="results" class="feed">
+      <div class="spinner-wrap"><div class="spinner"></div></div>
+    </div>
+  </main>
+
+  <script src="./config.js"></script>
+  <script type="module">
+    import { onPosts, onAuth, getUserProfile } from "./supabase-service.js";
+    import { topBar } from "./js/app.js";
+    import { postCard } from "./js/posts.js";
+
+    let allPosts = [];
+    let currentUid = null;
+
+    onAuth(async (user) => {
+      if (!user) {
+        document.getElementById("topbar").innerHTML = topBar(null, "explore");
+        return;
+      }
+      currentUid = user.uid;
+      const profile = await getUserProfile(user.uid).catch(() => null);
+      document.getElementById("topbar").innerHTML = topBar({ name: profile?.name || user.displayName || user.email }, "search");
+    });
+
+    onPosts((posts) => {
+      allPosts = posts;
+      render();
+    });
+
+    function render() {
+      const q = document.getElementById("search-input").value.trim().toLowerCase();
+      const kind = document.getElementById("filter-kind").value;
+      const animal = document.getElementById("filter-animal").value;
+
+      let list = allPosts;
+      if (kind) list = list.filter((p) => p.kind === kind);
+      if (animal) list = list.filter((p) => p.animalType === animal);
+      if (q) {
+        list = list.filter((p) =>
+          [p.name, p.breed, p.city, p.animalType, p.kind, p.description]
+            .join(" ")
+            .toLowerCase()
+            .includes(q)
+        );
+      }
+
+      const results = document.getElementById("results");
+      if (!list.length) {
+        results.innerHTML = '<div class="card empty-state"><span class="big">🔍</span><h3>No matches found</h3><p>Try a different search or filter.</p></div>';
+        return;
+      }
+      results.innerHTML = list.map((p) => postCard(p, currentUid)).join("");
+    }
+
+    document.getElementById("search-input").addEventListener("input", render);
+    document.getElementById("filter-kind").addEventListener("change", render);
+    document.getElementById("filter-animal").addEventListener("change", render);
+
+    // Reuse global post actions
+    window.handleLike = async (btn) => {
+      const { toggleLike } = await import("./supabase-service.js");
+      const { toast } = await import("./js/app.js");
+      if (!currentUid) return;
+      const holder = btn.querySelector("b");
+      const postId = btn.getAttribute("data-id");
+      try {
+        const liked = await toggleLike(postId, currentUid);
+        btn.classList.toggle("liked", liked);
+        const cur = parseInt(holder.textContent, 10) || 0;
+        holder.textContent = liked ? cur + 1 : Math.max(0, cur - 1);
+      } catch (e) {
+        toast("Please log in to like.", "error");
+      }
+    };
+    window.goToPost = (id) => (window.location.href = "post.html?id=" + id);
+    window.sharePost = (id) => {
+      const url = window.location.origin + window.location.pathname.replace(/[^/]*$/, "") + "post.html?id=" + id;
+      if (navigator.share) navigator.share({ title: "RescueNest", url }).catch(() => {});
+      else navigator.clipboard.writeText(url).then(() => toast("Link copied! 🔗"));
+    };
+    window.copyPhone = (phone) => {
+      if (!phone) return toast("No phone number.", "error");
+      navigator.clipboard.writeText(phone).then(() => toast("Phone copied! 📋"));
+    };
+  </script>
+</body>
+</html>

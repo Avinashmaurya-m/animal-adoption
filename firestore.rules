@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owns(resourceData) { return signedIn() && resourceData.authorId == request.auth.uid; }
+    function isShortText(value, max) { return value is string && value.size() <= max; }
+
+    match /users/{userId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn() && request.auth.uid == userId
+        && isShortText(request.resource.data.name, 80)
+        && isShortText(request.resource.data.email, 254);
+      allow update: if signedIn() && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['name', 'location', 'bio', 'photo']);
+      allow delete: if false;
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.ownerId == request.auth.uid
+        && isShortText(request.resource.data.name, 100)
+        && isShortText(request.resource.data.description, 2000)
+        && isShortText(request.resource.data.city, 100);
+      allow update: if owns(resource.data)
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.likes == resource.data.likes;
+      allow delete: if owns(resource.data);
+
+      match /likes/{userId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && userId == request.auth.uid
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.postId == postId;
+        allow delete: if signedIn() && userId == request.auth.uid;
+        allow update: if false;
+      }
+    }
+
+    match /comments/{commentId} {
+      // Comments belong to a public post and can be read by any visitor.
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && isShortText(request.resource.data.text, 1000)
+        && exists(/databases/$(database)/documents/posts/$(request.resource.data.postId));
+      allow update, delete: if false;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+  }
+}
