@@ -942,3 +942,61 @@ body:not(.rn-page-lp)::after {
   .feed-toolbar { padding-inline: 2px; }
 }
 
+/* Device-aware sizing: the same interface stays balanced from phones to wide PCs. */
+:root {
+  --rn-content-width: 920px;
+  --rn-content-gutter: 22px;
+  --rn-card-padding: 20px;
+  --rn-media-height: auto;
+}
+.container {
+  width: min(var(--rn-content-width), calc(100% - (var(--rn-content-gutter) * 2)));
+  padding-inline: 0;
+}
+.post-card .post-body { padding: var(--rn-card-padding); }
+.post-card .post-head { padding-inline: var(--rn-card-padding); }
+.post-card .post-image { width: 100%; height: var(--rn-media-height); }
+
+@media (min-width: 768px) {
+  :root {
+    --rn-content-width: 960px;
+    --rn-content-gutter: 30px;
+    --rn-card-padding: 24px;
+    --rn-media-height: 500px;
+  }
+  .container { padding-top: 44px; }
+  .feed-welcome { padding: 38px 40px; }
+  .feed { gap: 26px; }
+  .post-card .post-image { object-fit: cover; }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --rn-content-width: 1040px;
+    --rn-content-gutter: 42px;
+    --rn-card-padding: 28px;
+    --rn-media-height: 560px;
+  }
+  .container { padding-top: 52px; }
+  .feed-welcome { padding: 44px 48px; }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --rn-content-gutter: 15px;
+    --rn-card-padding: 17px;
+    --rn-media-height: auto;
+  }
+  .container { width: calc(100% - (var(--rn-content-gutter) * 2)); }
+  .post-card .post-image { aspect-ratio: 16 / 10; object-fit: cover; }
+  .post-actions button { min-height: 45px; }
+  .contact-bar { padding-inline: var(--rn-card-padding); }
+}
+
+@media (max-width: 380px) {
+  :root { --rn-content-gutter: 12px; --rn-card-padding: 14px; }
+  .feed-welcome { padding: 21px 17px; }
+  .post-title h3 { font-size: 19px; }
+  .meta-item { padding-inline: 8px; font-size: 12px; }
+}
+
