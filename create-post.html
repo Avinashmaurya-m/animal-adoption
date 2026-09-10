@@ -127,7 +127,7 @@
         window.location.href = "login.html";
         return;
       }
-      const profile = await getUserProfile(user.uid).catch(() => null);
+      const profile = await getUserProfile(user.id).catch(() => null);
       currentUser = { name: profile?.name || user.displayName || user.email };
       document.getElementById("topbar").innerHTML = topBar(currentUser, "create");
     });

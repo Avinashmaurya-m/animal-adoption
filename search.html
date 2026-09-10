@@ -56,8 +56,8 @@
         document.getElementById("topbar").innerHTML = topBar(null, "explore");
         return;
       }
-      currentUid = user.uid;
-      const profile = await getUserProfile(user.uid).catch(() => null);
+      currentUid = user.id;
+      const profile = await getUserProfile(user.id).catch(() => null);
       document.getElementById("topbar").innerHTML = topBar({ name: profile?.name || user.displayName || user.email }, "search");
     });
 

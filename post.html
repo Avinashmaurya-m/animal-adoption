@@ -46,8 +46,8 @@
         document.getElementById("comment-input").placeholder = "Sign in to write a comment";
         document.querySelector("#comment-form button").disabled = true;
       } else {
-        currentUid = user.uid;
-        const profile = await getUserProfile(user.uid).catch(() => null);
+        currentUid = user.id;
+        const profile = await getUserProfile(user.id).catch(() => null);
         document.getElementById("topbar").innerHTML = topBar({ name: profile?.name || user.displayName || user.email }, "home");
       }
 

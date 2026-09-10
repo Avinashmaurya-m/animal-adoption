@@ -24,13 +24,13 @@
 
     onAuth(async (user) => {
       if (!user) return (window.location.href = "login.html");
-      const profile = await getUserProfile(user.uid).catch(() => null);
+      const profile = await getUserProfile(user.id).catch(() => null);
       document.getElementById("topbar").innerHTML = topBar(
         { name: profile?.name || user.displayName || user.email },
         "alerts"
       );
 
-      onNotifications(user.uid, (notifications) => {
+      onNotifications(user.id, (notifications) => {
         const list = document.getElementById("notifications-list");
         if (!notifications.length) {
           list.innerHTML = '<div class="card empty-state"><span class="big">🔔</span><h3>No notifications yet</h3><p>When someone likes or comments on your post, you\'ll see it here.</p></div>';

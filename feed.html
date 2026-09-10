@@ -42,8 +42,8 @@
         document.getElementById("topbar").innerHTML = topBar(null, "home");
         return;
       }
-      currentUid = user.uid;
-      const profile = await getUserProfile(user.uid).catch(() => null);
+      currentUid = user.id;
+      const profile = await getUserProfile(user.id).catch(() => null);
       const name = profile?.name || user.displayName || user.email;
       currentUser = { name };
       document.getElementById("topbar").innerHTML = topBar(currentUser, "home");

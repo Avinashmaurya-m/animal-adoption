@@ -62,8 +62,8 @@
 
     onAuth(async (user) => {
       if (!user) return (window.location.href = "login.html");
-      currentUid = user.uid;
-      profile = (await getUserProfile(user.uid).catch(() => null)) || {};
+      currentUid = user.id;
+      profile = (await getUserProfile(user.id).catch(() => null)) || {};
       profile.name = profile.name || user.displayName || user.email;
 
       document.getElementById("topbar").innerHTML = topBar(profile, "profile");
