@@ -897,3 +897,48 @@ body:not(.rn-page-lp)::before { content: ''; position: fixed; inset: 0; pointer-
 @media (min-width: 768px) { .bottom-nav { display: none; } .topbar { position: sticky; } }
 @media (max-width: 767px) { .desktop-nav { display: none; } .topbar { height: 68px; } .topbar-inner { width: calc(100% - 28px); } .brand { font-size: 20px; } .brand .logo { width: 34px; height: 34px; } .container { padding: 27px 15px 105px; } .top-actions .icon-btn:first-child { display: none; } .post-meta { grid-template-columns: repeat(2, 1fr); } .post-body { padding: 17px; } .post-head { padding: 14px 17px; } .post-title h3 { font-size: 21px; } .auth-page .form-card { padding: 31px 22px; } }
 
+/* Final polish: quiet depth, clearer hierarchy, and a gentle entrance */
+body:not(.rn-page-lp)::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: .22;
+  background-image: radial-gradient(rgba(23,43,38,.08) .6px, transparent .6px);
+  background-size: 7px 7px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+.topbar-inner, .container { animation: pageReveal .55s ease both; }
+.feed-welcome {
+  border: 1px solid rgba(255,255,255,.72);
+  box-shadow: 0 20px 45px rgba(76,63,46,.08), inset 0 1px rgba(255,255,255,.7);
+}
+.feed-toolbar { letter-spacing: .15px; }
+.post-card {
+  border-color: rgba(23,43,38,.08);
+  box-shadow: 0 14px 34px rgba(42,42,42,.06);
+  animation: cardReveal .5s ease both;
+}
+.post-card:nth-child(2) { animation-delay: .06s; }
+.post-card:nth-child(3) { animation-delay: .12s; }
+.post-card:nth-child(4) { animation-delay: .18s; }
+.post-card:hover { border-color: rgba(71,125,104,.18); }
+.post-head { background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(252,250,247,.78)); }
+.post-actions button { letter-spacing: .05px; }
+.fab { box-shadow: 0 14px 28px rgba(28,72,58,.28); }
+@keyframes pageReveal {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 767px) {
+  .feed-welcome { padding: 24px 21px; border-radius: 21px; }
+  .feed-welcome::after { right: -10px; top: -39px; font-size: 145px; }
+  .feed-welcome .btn { width: 100%; margin-top: 5px; }
+  .feed-toolbar { padding-inline: 2px; }
+}
+
