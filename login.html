@@ -57,10 +57,12 @@
         window.location.replace("feed.html");
       } catch (err) {
         let msg = "Login failed. Please try again.";
-        if (err.code === "auth/user-not-found") msg = "No account found with this email.";
-        else if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") msg = "Incorrect password.";
-        else if (err.code === "auth/invalid-email") msg = "Please enter a valid email.";
-        else if (err.code === "auth/too-many-requests") msg = "Too many attempts. Try again later.";
+        const errorCode = err?.code || err?.error_code;
+        if (errorCode === "auth/user-not-found") msg = "No account found with this email.";
+        else if (errorCode === "auth/wrong-password" || errorCode === "auth/invalid-credential" || errorCode === "invalid_credentials") msg = "Incorrect email or password.";
+        else if (errorCode === "auth/invalid-email" || errorCode === "validation_failed") msg = "Please enter a valid email.";
+        else if (errorCode === "auth/too-many-requests" || err?.status === 429) msg = "Too many attempts. Try again later.";
+        else if (err?.message?.toLowerCase().includes("failed to fetch")) msg = "Unable to reach the login service. Check your internet connection.";
         toast(msg, "error");
       } finally {
         btn.disabled = false;

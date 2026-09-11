@@ -10,7 +10,7 @@ async function getSessionUser() {
 
 export async function signUp({ name, email, password }) {
   const { data, error } = await supabase.auth.signUp({
-    email,
+    email: email.trim().toLowerCase(),
     password,
     options: {
       data: { name, role: "person" }
@@ -33,7 +33,7 @@ export async function signUp({ name, email, password }) {
 }
 
 export const signIn = async (email, password) => {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
   if (error) throw error;
   return data.user;
 };
@@ -73,7 +73,8 @@ export function onAuth(callback) {
 }
 
 export async function getCurrentUser() {
-  const { data } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getUser();
+  if (error && error.status !== 401) throw error;
   return data.user;
 }
 
